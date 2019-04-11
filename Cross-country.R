@@ -394,7 +394,6 @@ chi$expected
 corrplot(chi$residuals, is.cor = FALSE)
 
 ##Exploratory chi squre on known helpers == acquaintance, family/friend
-install.packages("crunch")
 library("crunch")
 
 #filter data
@@ -427,7 +426,9 @@ anova_mood <-aov_ez(id = 'ResponseId',
                     between = c('live', 'helped'), 
                     return = afex_options("return_aov"),
                     print.formula = TRUE,
-                    type = afex_options('3'))
+                    es_aov = )
+nice(anova_mood) ##Results
+
 
 #Visualize data
 install.packages("jtools")
