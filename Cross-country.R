@@ -366,8 +366,8 @@ pairwise.UK
 library("car")
 
 ##recode variables context2 and context 3
-data$known <- car::recode(data$context3, "1 = '0'; 2:4 = '1'") # 0=no, 1=yes
-data$helped <- car::recode(data$context2, "1 = '1'; 3 = '0'; 2 = 'NA'") #recode were you helped - removing 'unsure' variable:0=no, 1=yes
+data$known <- car::recode(data$context3, "1 = 0; 2:4 = 1") # 0=no, 1=yes
+data$helped <- car::recode(data$context2, "1 = 1; 3 = 0; 2 = ''") #recode were you helped - removing 'unsure' variable:0=no, 1=yes
 
 #descriptives
 library("plyr")
@@ -383,6 +383,7 @@ library("dplyr")
 data.help <- filter(data, helped == 1 | helped == 0)
 pull(data.help) ##check filter
 
+storage.mode(data.help$helped) <- "numeric"  ## change 'helped' to numeric from character
 
 
 
@@ -399,7 +400,7 @@ library("crunch")
 #filter data
 library("dplyr")
 ## apply filter
-context3_filter2.4 <- filter(data.help, context3 == "2" | context3 == "4")
+context3_filter2.4 <- filter(data.help, context3 == 2 | context3 == 4)
 pull(context3_filter2.4) ##check filter
 
 #### chi-square test using filtered data for acquantances and friends/family
@@ -420,21 +421,23 @@ ttestIS(formula = mood_1 ~ helped, data = data.help, effectSize = TRUE)
 #by contry
 install.packages("afex")
 library("afex")
-anova_mood <-aov_ez(id = 'ResponseId', 
+anova_countryxhelp <-aov_ez(id = 'ResponseId', 
                     dv = 'mood_1', 
                     data = data.help, 
                     between = c('live', 'helped'), 
                     return = afex_options("return_aov"),
-                    print.formula = TRUE,
-                    es_aov = )
-nice(anova_mood) ##Results
+                    print.formula = TRUE)
+nice(anova_countryxhelp) ##Results
 
+library("emmeans")
+##follow up pos-hoc contrasts for country (live) on emotion change (mood)
+emmeans(anova_countryxhelp, "live", contr = "pairwise", adj = 'tuk')
 
 #Visualize data
 install.packages("jtools")
 library("jtools")
-plot1<- afex_plot(object = anova_mood, x = "helped", trace = "live", 
-                  mapping = c("shape", "fill"),
+plot1<- afex_plot(object = anova_countryxhelp, x = "helped", trace = "live", 
+                  mapping = "colour",
                   data_geom = ggplot2::geom_violin, 
                   data_arg = list(width = 0.5),
                   factor_levels = list(helped = c("No help", "Helped"),
