@@ -436,16 +436,17 @@ emmeans(anova_countryxhelp, "live", contr = "pairwise", adj = 'tuk')
 #Visualize data
 install.packages("jtools")
 library("jtools")
-plot1<- afex_plot(object = anova_countryxhelp, x = "helped", trace = "live", 
-                  mapping = "colour",
-                  data_geom = ggplot2::geom_violin, 
-                  data_arg = list(width = 0.5),
+plot1<- afex_plot(object = anova_countryxhelp, x = "helped", trace = "live", dodge = 0.3,
+                  point_arg = list(size = 2.5),
+                  data_alpha = 0,
+                  mapping = c("shape", "color"),
                   factor_levels = list(helped = c("No help", "Helped"),
                                        live = c("Australia", "Croatia","Netherland", "Thailand", "UK")),
                   legend_title = "Country") + labs (
                     x = "Helped", ##X-axis label
                     y = "Mood")   ##y-axis label
-plot1 + jtools::theme_apa() + theme(legend.position="bottom")
+plot1 + ggpubr::theme_pubr()
+
 
 ###################   correlation between mood following crying and BACS_social ###################
 library("Hmisc")
