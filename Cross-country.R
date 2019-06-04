@@ -447,6 +447,8 @@ plot1<- afex_plot(object = anova_countryxhelp, x = "helped", trace = "live", dod
                     y = "Emotion Change")   ##y-axis label
 plot1 + ggpubr::theme_pubr() + ggplot2::ylim(2, 5.3)
 
+ggsave(filename = "Plot.png", plot = (plot1 + ggpubr::theme_pubr() + ggplot2::ylim(2, 5.3)), width = 12, height = 10, dpi = 300, units = "cm")
+
 ###################   correlation between mood following crying and BACS_social ###################
 library("Hmisc")
 
