@@ -450,8 +450,8 @@ plot1<- afex_plot(object = anova_countryxhelp, x = "helped", trace = "live", dod
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#D55E00", "#0072B2")
 
 #plot
-plot1 + ggpubr::theme_pubr(base_size = 10, base_family = "", border = FALSE,
-                           margin = TRUE, legend = c("right"),  x.text.angle = 0) + ggplot2::ylim(2, 5.3) + scale_colour_manual(values=cbPalette)
+plot1 + ggpubr::theme_pubr(base_size = 12, base_family = "", border = FALSE,
+                           margin = TRUE, legend = c("right"),  x.text.angle = 0) + ggplot2::ylim(2, 5.2) + scale_colour_manual(values=cbPalette)
 
 
 ###################   correlation between mood following crying and BACS_social ###################
