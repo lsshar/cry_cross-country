@@ -158,10 +158,6 @@ mycor$P ##p-values
 
 #######################    Mediation analysis     #######################
 
-#Install packages for analyses
-install.packages("medmod")
-library("medmod")
-
 install.packages("car")
 library("car")
 
@@ -173,25 +169,10 @@ descriptives(data=data, vars = Cry_last, freq = TRUE)
 ##create dichotomised variable in data for Cry_last with 1,2 == 1; 3,4,5,6 == 2
 data$last.cry <- car::recode(data$Cry_last, "1:2 = '1'; 3:6 = '2'") # 1=recent; 2 = not recent
 
+##Mediation of combined
 
-myModel <- '
-Cry_intensity ~ b1 * BACS_Help + c1 * GRE + c2 * last.cry
-BACS_Help ~ a1 * GRE + a2 * last.cry
-
-#indirect effects
-indirect1 := a1 * b1
-
-# contrasts
-con1 := a1 * b1
-con2 := a2 * b1
-con3 := (a1-a2) * b1
-
-# total effect
-total1 := c1 + (a1 * b1)
-total2 := c2 + (a2 * b1)
-'
-
-mediation1 <- ' # direct effect
+mediation1 <- ' 
+# direct effect
 Cry_intensity ~ c*GRE + last.cry
 # mediator
 BACS_Help ~ a*GRE + last.cry
@@ -208,6 +189,32 @@ fit <- sem(mediation1,
 
 summary(fit, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
+##Mediation of seperate DVs for behaviour given small reliability
+mediation2 <- '
+# direct effect
+Zintense_tear ~ c1*GRE + last.cry
+Zintense_time ~ c2*GRE + last.cry
+
+# mediator
+BACS_Help ~ a*GRE + last.cry
+Zintense_tear ~ b1*BACS_Help
+Zintense_time ~ b2*BACS_Help
+
+# indirect effects (a*b)
+ab1 := a*b1
+ab2 := a*b2
+
+# total effect
+total1 := c1 + (a*b1)
+total2 := c2 + (a*b2)
+'
+require("lavaan")
+fitmed2 <- sem(mediation2, 
+           data=data, 
+           se = "bootstrap", 
+           bootstrap = 1000)
+
+summary(fitmed2, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 ######################              Mediation by country
 library("dplyr")
@@ -268,6 +275,80 @@ summary(fit.UK, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 
 
+#### Traditional masculinity femininity scale Mediation check
+
+mediationTMF <- ' 
+# direct effect
+Cry_intensity ~ c*TMF + last.cry
+
+# mediator
+BACS_Help ~ a*TMF + last.cry
+Cry_intensity ~ b*BACS_Help
+
+# indirect effect (a*b)
+ab := a*b
+
+# total effect
+total := c + (a*b)'
+require("lavaan")
+fitTMF <- sem(mediationTMF, 
+              data=data, 
+              se = "bootstrap", 
+              bootstrap = 1000)
+
+summary(fitTMF, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+
+#### Mediation check: Gender equality scale
+mediationGES <- ' 
+# direct effect
+Cry_intensity ~ c*GES + last.cry
+
+# mediator
+BACS_Help ~ a*GES + last.cry
+Cry_intensity ~ b*BACS_Help
+
+# indirect effect (a*b)
+ab := a*b
+
+# total effect
+total := c + (a*b)'
+require("lavaan")
+fitGES <- sem(mediationGES, 
+              data=data, 
+              se = "bootstrap", 
+              bootstrap = 1000)
+
+summary(fitGES, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+
+### Mediation new: Gender -> Gender roles -> Crying behaviour
+#Create Z score for Frequency of crying variable
+zFreq <- scale(data$Freq)
+
+model_gender <- ' 
+# direct effect
+zFreq ~ c1*gender
+Zintense_tear ~ c2*gender
+Zintense_time ~ c3*gender
+
+# mediator
+GRE ~ a*gender
+zFreq ~ b1*
+Zintense_tear ~ b2*GRE
+Zintense_time ~ b3*GRE
+
+# indirect effects (a*b)
+ab1 := a*b1
+ab2 := a*b2
+ab3 := a*b3
+
+# total effect
+total1 := c1 + (a*b1)
+total2 := c2 + (a*b2)
+total3 := c3 + (a*b3)
+'
+#Fit model to data, and request bootstrapped estimates
+fit_gender <- sem(model_gender, data = gender.2, se = "bootstrap", bootstrap = 1000)
+summary(fit_gender, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 
 ###################   *Social crying analyses*   ################### 
@@ -450,8 +531,8 @@ plot1<- afex_plot(object = anova_countryxhelp, x = "helped", trace = "live", dod
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#D55E00", "#0072B2")
 
 #plot
-plot1 + ggpubr::theme_pubr(base_size = 10, base_family = "", border = FALSE,
-                           margin = TRUE, legend = c("right"),  x.text.angle = 0) + ggplot2::ylim(2, 5.3) + scale_colour_manual(values=cbPalette)
+plot1 + ggpubr::theme_pubr(base_size = 12, base_family = "", border = FALSE,
+                           margin = TRUE, legend = c("right"),  x.text.angle = 0) + ggplot2::ylim(2, 5.2) + scale_colour_manual(values=cbPalette)
 
 
 ###################   correlation between mood following crying and BACS_social ###################
