@@ -172,9 +172,9 @@ data$last.cry <- car::recode(data$Cry_last, "1:2 = '1'; 3:6 = '2'") # 1=recent; 
 
 mediation1 <- ' 
 # direct effect
-Cry_intensity ~ c*GRE + last.cry
+Cry_intensity ~ c*GRE2 + last.cry
 # mediator
-BACS_Help ~ a*GRE + last.cry
+BACS_Help ~ a*GRE2 + last.cry
 Cry_intensity ~ b*BACS_Help
 # indirect effect (a*b)
 ab := a*b
@@ -191,11 +191,11 @@ summary(fit, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 ##Mediation of seperate DVs for behaviour given small reliability
 mediation2 <- '
 # direct effect
-Zintense_tear ~ c1*GRE + last.cry
-Zintense_time ~ c2*GRE + last.cry
+Zintense_tear ~ c1*GRE2 + last.cry
+Zintense_time ~ c2*GRE2 + last.cry
 
 # mediator
-BACS_Help ~ a*GRE + last.cry
+BACS_Help ~ a*GRE2 + last.cry
 Zintense_tear ~ b1*BACS_Help
 Zintense_time ~ b2*BACS_Help
 
@@ -274,80 +274,102 @@ summary(fit.UK, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 
 
-#### Traditional masculinity femininity scale Mediation check
+##Mediation confirmation::  Crying intensity
 
-mediationTMF <- ' 
+model_intensity <- ' 
+# direct effect
+Zintense_tear ~ c1*GRE2 + last.cry
+Zintense_time ~ c2*GRE2 + last.cry
+
+# mediator
+BACS_Help ~ a*GRE2 + last.cry
+Zintense_tear ~ b1*BACS_Help
+Zintense_time ~ b2*BACS_Help
+
+# indirect effects (a*b)
+ab1 := a*b1
+ab2 := a*b2
+
+# total effect
+total1 := c1 + (a*b1)
+total2 := c2 + (a*b2)
+'
+#Fit model to data, and request bootstrapped estimates
+fit_intensity <- sem(model_intensity, data = data, se = "bootstrap", bootstrap = 1000)
+summary(fit_intensity, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+
+
+
+
+#### Mediation confirmation: Traditional masculinity femininity scale Mediation check
+med_TMF1 <- ' 
 # direct effect
 Cry_intensity ~ c*TMF + last.cry
-
 # mediator
 BACS_Help ~ a*TMF + last.cry
 Cry_intensity ~ b*BACS_Help
-
 # indirect effect (a*b)
 ab := a*b
-
 # total effect
 total := c + (a*b)'
 require("lavaan")
-fitTMF <- sem(mediationTMF, 
-              data=data, 
-              se = "bootstrap", 
-              bootstrap = 1000)
+fit_TMF1 <- sem(med_TMF1, 
+           data=data, 
+           se = "bootstrap", 
+           bootstrap = 1000)
 
-summary(fitTMF, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+summary(fit_TMF1, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
-#### Mediation check: Gender equality scale
-mediationGES <- ' 
+
+#### Mediation confirmation: Gender equality scale
+med_GES1 <- ' 
 # direct effect
 Cry_intensity ~ c*GES + last.cry
-
 # mediator
 BACS_Help ~ a*GES + last.cry
 Cry_intensity ~ b*BACS_Help
-
 # indirect effect (a*b)
 ab := a*b
-
 # total effect
 total := c + (a*b)'
 require("lavaan")
-fitGES <- sem(mediationGES, 
-              data=data, 
-              se = "bootstrap", 
-              bootstrap = 1000)
+fit_GES1 <- sem(med_GES1, 
+                data=data, 
+                se = "bootstrap", 
+                bootstrap = 1000)
 
-summary(fitGES, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+summary(fit_GES1, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+
 
 ### Mediation new: Gender -> Gender roles -> Crying behaviour
 #Create Z score for Frequency of crying variable
 gender.2$zFreq <- scale(gender.2$Freq)
 
+#Create crying behaviour variable
+gender.2$zbehav <- (gender.2$Cry_intensity+ gender.2$zFreq)
+
+#Mediation
 model_gender <- ' 
 # direct effect
-zFreq ~ c1*gender
-Zintense_tear ~ c2*gender
-Zintense_time ~ c3*gender
+zbehav ~ c*gender
 
 # mediator
-GRE ~ a*gender
-zFreq ~ b1*GRE
-Zintense_tear ~ b2*GRE
-Zintense_time ~ b3*GRE
+GRE2 ~ a*gender
+zbehav ~ b*GRE2
 
 # indirect effects (a*b)
-ab1 := a*b1
-ab2 := a*b2
-ab3 := a*b3
+indirectab := a*b
+
+#direct effects
+direct := c
 
 # total effect
-total1 := c1 + (a*b1)
-total2 := c2 + (a*b2)
-total3 := c3 + (a*b3)
+total := c + (a*b)
 '
+require("lavaan")
 #Fit model to data, and request bootstrapped estimates
 fit_gender <- sem(model_gender, data = gender.2, se = "bootstrap", bootstrap = 1000)
-summary(fit_gender, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
+summary(fit_gender, fit.measures=TRUE, standardize = TRUE, rsquare=TRUE, ci = TRUE)
 
 
 ###################   *Social crying analyses*   ################### 
