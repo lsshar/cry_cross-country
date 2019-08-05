@@ -14,6 +14,8 @@
 
 ##Imputed scores for estimated crying frequency where a range was provided
 
+##relaibility of combined variables checked
+
 ###############   DATA ANALYSIS   ###############
 
 
@@ -144,16 +146,13 @@ library("corrplot")
 #### Correlations between Gender, Gender role identity, BACS_Help, Cry)intensity, mood_1
 
 #correlation function using *spearmans rho*, 
-#column no's are 63= gender, 74= GRE, 71= BACS_Help, 75= Cry_intensity, 24= mood_1
-mycor <- rcorr(as.matrix(data[,c(63,74,71,75,24)]), type = "spearman")
+#column no's are 55= gender, 66= GRE2, 61= BACS_Help, 65= Cry_intensity, 16= mood_1
+mycor <- rcorr(as.matrix(gender.2[,c(55,66,61,65,16)]), type = "spearman")
 
 #ask for output:
 mycor$n ##number of observations
 mycor$r ##spearmans correlations
 mycor$P ##p-values
-
-
-
 
 
 #######################    Mediation analysis     #######################
@@ -322,7 +321,7 @@ summary(fitGES, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 ### Mediation new: Gender -> Gender roles -> Crying behaviour
 #Create Z score for Frequency of crying variable
-zFreq <- scale(data$Freq)
+gender.2$zFreq <- scale(gender.2$Freq)
 
 model_gender <- ' 
 # direct effect
@@ -332,7 +331,7 @@ Zintense_time ~ c3*gender
 
 # mediator
 GRE ~ a*gender
-zFreq ~ b1*
+zFreq ~ b1*GRE
 Zintense_tear ~ b2*GRE
 Zintense_time ~ b3*GRE
 
