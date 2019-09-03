@@ -146,8 +146,8 @@ library("corrplot")
 #### Correlations between Gender, Gender role identity, BACS_Help, Cry)intensity, mood_1
 
 #correlation function using *spearmans rho*, 
-#column no's are 55= gender, 66= GRE2, 61= BACS_Help, 65= Cry_intensity, 16= mood_1
-mycor <- rcorr(as.matrix(gender.2[,c(55,66,61,65,16)]), type = "spearman")
+#column no's are 55= gender, 67= TMF, 68 = GES, 61= BACS_Help, 65= Cry_intensity, 16= mood_1
+mycor <- rcorr(as.matrix(gender.2[,c(55,67,68,61,65,16)]), type = "spearman")
 
 #ask for output:
 mycor$n ##number of observations
@@ -172,14 +172,15 @@ data$last.cry <- car::recode(data$Cry_last, "1:2 = '1'; 3:6 = '2'") # 1=recent; 
 
 mediation1 <- ' 
 # direct effect
-Cry_intensity ~ c*GRE2 + last.cry
+Cry_intensity ~ c1*TMF +c2*GES + last.cry
 # mediator
-BACS_Help ~ a*GRE2 + last.cry
+BACS_Help ~ a1*TMF + a2*GES + last.cry
 Cry_intensity ~ b*BACS_Help
 # indirect effect (a*b)
-ab := a*b
+ab := (a1*b) + (a2*b)
+
 # total effect
-total := c + (a*b)'
+total1 := c1 + c2 + (a1*b) + (a2*b)'
 require("lavaan")
 fit <- sem(mediation1, 
            data=data, 
@@ -188,32 +189,6 @@ fit <- sem(mediation1,
 
 summary(fit, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
-##Mediation of seperate DVs for behaviour given small reliability
-mediation2 <- '
-# direct effect
-Zintense_tear ~ c1*GRE2 + last.cry
-Zintense_time ~ c2*GRE2 + last.cry
-
-# mediator
-BACS_Help ~ a*GRE2 + last.cry
-Zintense_tear ~ b1*BACS_Help
-Zintense_time ~ b2*BACS_Help
-
-# indirect effects (a*b)
-ab1 := a*b1
-ab2 := a*b2
-
-# total effect
-total1 := c1 + (a*b1)
-total2 := c2 + (a*b2)
-'
-require("lavaan")
-fitmed2 <- sem(mediation2, 
-           data=data, 
-           se = "bootstrap", 
-           bootstrap = 1000)
-
-summary(fitmed2, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 ######################              Mediation by country
 library("dplyr")
@@ -274,33 +249,6 @@ summary(fit.UK, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 
 
-##Mediation confirmation::  Crying intensity
-
-model_intensity <- ' 
-# direct effect
-Zintense_tear ~ c1*GRE2 + last.cry
-Zintense_time ~ c2*GRE2 + last.cry
-
-# mediator
-BACS_Help ~ a*GRE2 + last.cry
-Zintense_tear ~ b1*BACS_Help
-Zintense_time ~ b2*BACS_Help
-
-# indirect effects (a*b)
-ab1 := a*b1
-ab2 := a*b2
-
-# total effect
-total1 := c1 + (a*b1)
-total2 := c2 + (a*b2)
-'
-#Fit model to data, and request bootstrapped estimates
-fit_intensity <- sem(model_intensity, data = data, se = "bootstrap", bootstrap = 1000)
-summary(fit_intensity, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
-
-
-
-
 #### Mediation confirmation: Traditional masculinity femininity scale Mediation check
 med_TMF1 <- ' 
 # direct effect
@@ -342,30 +290,29 @@ summary(fit_GES1, fit.measures=TRUE, rsquare=TRUE, ci = TRUE)
 
 
 ### Mediation new: Gender -> Gender roles -> Crying behaviour
-#Create Z score for Frequency of crying variable
-gender.2$zFreq <- scale(gender.2$Freq)
 
-#Create crying behaviour variable
-gender.2$zbehav <- (gender.2$Cry_intensity+ gender.2$zFreq)
-
-#Mediation
+#Mediation for gender
 model_gender <- ' 
 # direct effect
-zbehav ~ c*gender
+Cry_intensity ~ c*gender + b1*TMF + b2*GES
 
 # mediator
-GRE2 ~ a*gender
-zbehav ~ b*GRE2
+TMF ~ a1*gender
+GES ~ a2*gender
 
 # indirect effects (a*b)
-indirectab := a*b
+medVar1 := a1*b1
+medVar2 := a2*b2
+sum IDE := (a1*b1) + (a2*b2)
 
-#direct effects
+#direct effect
 direct := c
 
 # total effect
-total := c + (a*b)
-'
+
+total := c + (a1*b1) + (a2*b2)
+TMF ~~ GES' # model correlation between mediators
+
 require("lavaan")
 #Fit model to data, and request bootstrapped estimates
 fit_gender <- sem(model_gender, data = gender.2, se = "bootstrap", bootstrap = 1000)
